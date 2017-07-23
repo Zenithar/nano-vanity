@@ -13,11 +13,11 @@ RUN apk add --update musl \
     && mv $GOPATH/bin/vanity /bin \
     && mkdir /vanity \
     && apk del --purge build-tools \
-    && apk add ca-certificates \
+    && apk add ca-certificates tini \
     && rm -rf /go /var/cache/apk/*
 
 USER       nobody
 EXPOSE     8080
 VOLUME     [ "/vanity" ]
 WORKDIR    "/vanity"
-ENTRYPOINT [ "/bin/vanity" ]
+ENTRYPOINT [ "/sbin/tini", "--", "/bin/vanity"]
