@@ -13,6 +13,7 @@ RUN apk add --update musl \
     && mv $GOPATH/bin/vanity /bin \
     && mkdir /vanity \
     && apk del --purge build-tools \
+    && apk add ca-certificates \
     && rm -rf /go /var/cache/apk/*
 
 USER       nobody
