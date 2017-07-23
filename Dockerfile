@@ -8,7 +8,7 @@ RUN apk add --update musl \
     && apk add -t build-tools build-base go mercurial git upx \
     && mkdir /go \
     && cd /go \
-    && go get -tags=$VANITY_TAG github.com/xiam/vanity/... \
+    && go get github.com/Zenithar/vanity/... \
     && upx -9 $GOPATH/bin/vanity \
     && mv $GOPATH/bin/vanity /bin \
     && mkdir /vanity \
@@ -20,4 +20,3 @@ EXPOSE     8080
 VOLUME     [ "/vanity" ]
 WORKDIR    "/vanity"
 ENTRYPOINT [ "/bin/vanity" ]
-CMD        [ "-h" ]
