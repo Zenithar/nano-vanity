@@ -1,23 +1,43 @@
-FROM alpine:edge
-MAINTAINER Thibault NORMAND <me@zenithar.org>
+## -------------------------------------------------------------------------------------------------
 
-ENV GOPATH /go
-ENV VANITY_TAG v0.2
+FROM golang:1.12 as builder
 
-RUN apk add --update musl \
-    && apk add -t build-tools build-base go mercurial git upx \
-    && mkdir /go \
-    && cd /go \
-    && go get github.com/Zenithar/vanity/... \
-    && upx -9 $GOPATH/bin/vanity \
-    && mv $GOPATH/bin/vanity /bin \
-    && mkdir /vanity \
-    && apk del --purge build-tools \
-    && apk add ca-certificates tini \
-    && rm -rf /go /var/cache/apk/*
+RUN set -eux; \
+    apt-get update -y && \
+    apt-get install -y apt-utils upx zip unzip;
 
-USER       nobody
-EXPOSE     8080
-VOLUME     [ "/vanity" ]
-WORKDIR    "/vanity"
-ENTRYPOINT [ "/sbin/tini", "--", "/bin/vanity"]
+# Drop root privileges to build
+RUN adduser --disabled-password --gecos "" -u 1000 golang && \
+    mkdir -p $GOPATH/src/workspace && \
+    chown -R golang:golang $GOPATH/src/workspace;
+
+# Force go modules
+ENV GO111MODULE=on
+
+WORKDIR $GOPATH/src/workspace
+
+USER golang
+
+# Clone repository
+RUN set -eux; \
+    git clone --depth=1 https://github.com/googleCloudPlatform/govanityurls
+
+WORKDIR $GOPATH/src/workspace/govanityurls
+
+# Build final target
+RUN set -eux; \
+    go build -o bin/govanityurls -ldflags="-s -w"
+
+# Compress binaries
+RUN set -eux; \
+    upx -9 bin/*
+
+## -------------------------------------------------------------------------------------------------
+
+FROM gcr.io/distroless/static:latest
+
+COPY --from=builder /go/src/workspace/govanityurls/bin/govanityurls /usr/local/bin/govanityurls
+
+EXPOSE 8080
+VOLUME [ "/config" ]
+ENTRYPOINT [ "/usr/local/bin/govanityurls" ]

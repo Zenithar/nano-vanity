@@ -1,3 +1,3 @@
 # nano-vanity
 
-Vanity (gopkg.in fork) server for Golang packages.
+Vanity server for Golang packages.
