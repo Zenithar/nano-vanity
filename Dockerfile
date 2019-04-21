@@ -34,10 +34,11 @@ RUN set -eux; \
 
 ## -------------------------------------------------------------------------------------------------
 
-FROM gcr.io/distroless/static:latest
+FROM gcr.io/distroless/base:latest
 
-COPY --from=builder /go/src/workspace/govanityurls/bin/govanityurls /usr/local/bin/govanityurls
+COPY --from=builder /go/src/workspace/govanityurls/bin/govanityurls /
 
 EXPOSE 8080
+WORKDIR /config
 VOLUME [ "/config" ]
-ENTRYPOINT [ "/usr/local/bin/govanityurls" ]
+ENTRYPOINT [ "/govanityurls" ]
